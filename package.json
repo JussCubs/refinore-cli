@@ -1,0 +1,52 @@
+{
+  "name": "refinore-cli",
+  "version": "1.0.0",
+  "description": "CLI tool for ORE mining on Solana via refinORE",
+  "main": "dist/index.js",
+  "bin": {
+    "refinore": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepare": "npm run build",
+    "test": "node dist/index.js --help"
+  },
+  "keywords": [
+    "ore",
+    "solana",
+    "mining",
+    "refinore",
+    "crypto",
+    "cli",
+    "blockchain",
+    "web3",
+    "defi",
+    "pow"
+  ],
+  "author": "refinORE Community",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/refinore/refinore-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/refinore/refinore-cli/issues"
+  },
+  "homepage": "https://automine.refinore.com",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.17.11",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
