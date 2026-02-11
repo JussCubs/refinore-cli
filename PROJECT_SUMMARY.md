@@ -3,8 +3,9 @@
 ## ✅ Project Complete
 
 **Built:** 2026-02-11  
+**Updated:** 2026-02-11 (v1.1.0)  
 **Status:** Ready for npm publish  
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 
 ---
 
@@ -30,7 +31,8 @@
 
 2. **`refinore mine`** - Start mining session
    - Interactive or CLI flags
-   - Options: amount, tiles, token, risk, mode
+   - Options: amount, tiles, token, mode
+   - Advanced thresholds: --ev-min, --motherlode-min, --sol-deployed-max
    - Supports SOL, USDC, ORE, stORE, SKR
    - Auto-restart enabled by default
 
@@ -216,10 +218,11 @@ npx -y refinore-cli --auto-mine
 ### Mining Features
 - ✅ Multi-token support (SOL, USDC, ORE, stORE, SKR)
 - ✅ Tile selection modes (optimal, random, custom)
-- ✅ Risk tolerance settings
+- ✅ Advanced thresholds (EV%, motherlode, SOL deployed max)
 - ✅ Auto-restart
 - ✅ Session management
 - ✅ Round-by-round tracking
+- ✅ Automated strategy conditions
 
 ### Display Features
 - ✅ Token balances with USD values

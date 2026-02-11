@@ -61,7 +61,7 @@ refinore init
 ## Commands
 
 ### `refinore init`
-Set up the CLI with your refinORE API key.
+Set up the CLI with your refinORE API key. Optionally configure default mining thresholds.
 
 ### `refinore mine`
 Start a new mining session.
@@ -71,9 +71,9 @@ Start a new mining session.
 - `-t, --tiles <tiles>` - Number of tiles 1-25 (default: 15)
 - `--token <token>` - Mining token: SOL, USDC, ORE, stORE, SKR (default: SOL)
 - `-m, --mode <mode>` - Tile selection: optimal, random, custom (default: optimal)
-- `--ev-min <number>` - Minimum EV% to mine (e.g., 5 = only mine if EV > 5%)
-- `--motherlode-min <number>` - Minimum motherlode ORE to mine
-- `--sol-deployed-max <number>` - Maximum total SOL deployed to mine
+- `--ev-min <number>` - Only mine if EV% is above this threshold
+- `--motherlode-min <number>` - Only mine if motherlode ORE is above this threshold
+- `--sol-deployed-max <number>` - Stop mining if total SOL deployed exceeds this amount
 - `--no-auto-restart` - Disable auto-restart after each round
 
 **Examples:**
@@ -84,23 +84,20 @@ refinore mine
 # Quick start with defaults
 refinore mine -a 0.01 -t 15 --token SOL
 
-# Conservative mining (fewer tiles)
-refinore mine -a 0.005 -t 10
+# Conservative mining with EV threshold
+refinore mine -a 0.01 -t 15 --ev-min 5
 
-# Aggressive (all tiles)
-refinore mine -a 0.02 -t 25
+# Only mine when motherlode is high
+refinore mine -a 0.02 -t 25 --motherlode-min 100
+
+# Set maximum SOL deployment limit
+refinore mine -a 0.01 -t 15 --sol-deployed-max 1000
+
+# Combine multiple thresholds
+refinore mine -a 0.01 -t 15 --ev-min 3 --motherlode-min 50
 
 # Mine with USDC (stablecoin)
 refinore mine -a 0.01 -t 15 --token USDC
-
-# Only mine when EV is positive
-refinore mine -a 0.01 -t 15 --ev-min 5
-
-# Only mine when motherlode is big
-refinore mine -a 0.01 -t 15 --motherlode-min 100
-
-# Only mine in low-competition rounds
-refinore mine -a 0.01 -t 15 --sol-deployed-max 1000
 ```
 
 ### `refinore status`
@@ -141,7 +138,10 @@ Config is stored at `~/.refinore/config.json`:
 {
   "apiKey": "rsk_...",
   "apiUrl": "https://automine.refinore.com/api",
-  "walletAddress": "..."
+  "walletAddress": "...",
+  "evMin": 5,
+  "motherlodeMin": 100,
+  "solDeployedMax": 1000
 }
 ```
 
@@ -159,19 +159,21 @@ You can also use environment variables:
 
 ### Advanced Thresholds
 
-Control when to mine based on round conditions:
+Control when mining happens with optional thresholds:
 
-- **--ev-min** - Only mine when Expected Value (EV) exceeds this percentage
-  - Example: `--ev-min 5` = only mine rounds with EV > 5%
-  - Helps avoid negative EV rounds and maximizes profitability
+- **EV Minimum** (`--ev-min`) - Only mine rounds with Expected Value above this percentage
+  - Example: `--ev-min 5` only mines when EV > 5%
+  - Use this to avoid unprofitable rounds
+  
+- **Motherlode Minimum** (`--motherlode-min`) - Only mine when the jackpot is worth it
+  - Example: `--motherlode-min 100` only mines when motherlode > 100 ORE
+  - Good for targeting high-value rounds
+  
+- **SOL Deployed Maximum** (`--sol-deployed-max`) - Safety limit on total deployment
+  - Example: `--sol-deployed-max 1000` stops after deploying 1000 SOL total
+  - Useful for budget management
 
-- **--motherlode-min** - Only mine when motherlode jackpot is large enough
-  - Example: `--motherlode-min 100` = only mine when motherlode > 100 ORE
-  - Great for jackpot hunting strategies
-
-- **--sol-deployed-max** - Only mine in low-competition rounds
-  - Example: `--sol-deployed-max 1000` = skip rounds with >1000 SOL deployed
-  - Reduces competition and increases win probability
+These thresholds work together to create automated, intelligent mining strategies.
 
 ### Multi-Coin Mining
 
@@ -191,6 +193,7 @@ refinORE is the only ORE mining platform with:
 - ✅ **Multi-coin mining** - SOL, USDC, ORE, stORE, SKR
 - ✅ **Advanced strategies** - AI-optimized tile selection
 - ✅ **Auto-restart** - mine 24/7 without intervention
+- ✅ **Automated thresholds** - mine only when conditions are met
 - ✅ **Card/Apple Pay deposits** - via Coinbase onramp
 
 ## Troubleshooting
@@ -211,7 +214,7 @@ Stop your current session first with `refinore stop`.
 
 - **refinORE App**: [automine.refinore.com](https://automine.refinore.com)
 - **Discord**: Join the refinORE Discord for support
-- **GitHub**: [Report issues](https://github.com/yourusername/refinore-cli/issues)
+- **GitHub**: [Report issues](https://github.com/JussCubs/refinore-cli/issues)
 
 ## License
 

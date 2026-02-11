@@ -57,9 +57,17 @@ export async function statusCommand(): Promise<void> {
       infoTable.push(['Strategy', chalk.white(mode)]);
     }
     
-    if (sessionData.risk_tolerance || sessionData.riskTolerance) {
-      const risk = sessionData.risk_tolerance || sessionData.riskTolerance;
-      infoTable.push(['Risk', chalk.white(risk)]);
+    // Display thresholds if set
+    if (sessionData.ev_threshold !== undefined && sessionData.ev_threshold !== null) {
+      infoTable.push(['Min EV', chalk.green(`${sessionData.ev_threshold}%`)]);
+    }
+    
+    if (sessionData.motherlode_threshold !== undefined && sessionData.motherlode_threshold !== null) {
+      infoTable.push(['Min Motherlode', chalk.yellow(`${sessionData.motherlode_threshold} ORE`)]);
+    }
+    
+    if (sessionData.sol_deployed_max !== undefined && sessionData.sol_deployed_max !== null) {
+      infoTable.push(['Max SOL Deployed', chalk.red(`${sessionData.sol_deployed_max} SOL`)]);
     }
 
     // Stats

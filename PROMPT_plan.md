@@ -31,7 +31,7 @@ refinore stop
 ## Commands to Implement
 
 ### Setup & Config
-- `refinore init` — Interactive setup wizard (API key, default amount, tiles, risk)
+- `refinore init` — Interactive setup wizard (API key, optional thresholds)
 - `refinore config` — Show/edit config
 - `refinore whoami` — Show account info + wallet address
 
@@ -40,9 +40,11 @@ refinore stop
   - `--amount <sol>` — Amount per round (default from config)
   - `--tiles <num>` — Number of tiles 1-25 (default from config)
   - `--token <SOL|USDC|ORE|stORE|SKR>` — Mining token (default SOL)
-  - `--risk <low|medium|high>` — Risk tolerance (default medium)
-  - `--strategy <optimal|degen|conservative>` — Tile selection mode
-  - `--auto` — Auto-restart on completion
+  - `--ev-min <number>` — Minimum EV% to mine (optional)
+  - `--motherlode-min <number>` — Minimum motherlode ORE to mine (optional)
+  - `--sol-deployed-max <number>` — Maximum total SOL deployed (optional)
+  - `--mode <optimal|random|custom>` — Tile selection mode
+  - `--auto-restart` — Auto-restart on completion (default: true)
 - `refinore stop` — Stop active session
 - `refinore status` — Show active session + round info
 - `refinore history [options]` — Show mining history
@@ -77,7 +79,7 @@ refinore stop
    - If no config exists, run interactive `init` wizard automatically
    - Prompt for API key, validate it
    - Get wallet address from API, save to config
-   - Set sensible defaults (0.01 SOL, 15 tiles, medium risk)
+   - Optionally set thresholds (EV%, motherlode, SOL deployed max)
 
 2. **Global install detection**
    - On first `npx` run, prompt: "Install globally for easier access?"

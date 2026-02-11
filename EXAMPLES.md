@@ -22,6 +22,7 @@ npx refinore-cli init
 When prompted:
 - Paste your API key from https://automine.refinore.com
 - Press Enter to use default API URL
+- Optionally set default thresholds (EV%, motherlode, SOL deployed)
 
 ### 2. Fund Your Wallet
 ```bash
@@ -46,8 +47,8 @@ Follow the interactive prompts to configure:
 - Amount per round (e.g., 0.01 SOL)
 - Number of tiles (1-25)
 - Mining token (SOL, USDC, ORE, stORE, SKR)
-- Risk tolerance (low, medium, high)
 - Strategy (optimal, random, custom)
+- Optional: Advanced thresholds
 
 ### 5. Monitor Progress
 ```bash
@@ -66,47 +67,78 @@ refinore stop
 ## Advanced Examples
 
 ### Conservative Mining
-Small bets, fewer tiles, lower risk:
+Small bets, fewer tiles:
 ```bash
-refinore mine -a 0.005 -t 10 -r low --token SOL
+refinore mine -a 0.005 -t 10 --token SOL
 ```
 
 ### Aggressive Mining
-Larger bets, all tiles, high risk:
+Larger bets, all tiles:
 ```bash
-refinore mine -a 0.05 -t 25 -r high --token SOL
+refinore mine -a 0.05 -t 25 --token SOL
 ```
+
+### Smart Mining with EV Threshold
+Only mine when Expected Value is positive:
+```bash
+refinore mine -a 0.01 -t 15 --ev-min 5
+```
+This only mines rounds where EV > 5%, avoiding unprofitable rounds.
+
+### Motherlode Hunter
+Target high-value rounds only:
+```bash
+refinore mine -a 0.02 -t 25 --motherlode-min 100
+```
+Only mines when the jackpot is above 100 ORE.
+
+### Budget-Controlled Mining
+Set a maximum total SOL deployment:
+```bash
+refinore mine -a 0.01 -t 15 --sol-deployed-max 500
+```
+Automatically stops after deploying 500 SOL total across all rounds.
+
+### Combined Thresholds
+Use multiple conditions for optimal strategy:
+```bash
+refinore mine -a 0.01 -t 15 --ev-min 3 --motherlode-min 50 --sol-deployed-max 1000
+```
+Only mines when:
+- EV > 3%
+- Motherlode > 50 ORE
+- Total deployed < 1000 SOL
 
 ### Stablecoin Mining
 Mine with USDC to avoid SOL price exposure:
 ```bash
-refinore mine -a 0.01 -t 15 --token USDC -r medium
+refinore mine -a 0.01 -t 15 --token USDC
 ```
 
 ### ORE Compounding
 Reinvest your ORE earnings:
 ```bash
-refinore mine -a 0.1 -t 20 --token ORE -r medium
+refinore mine -a 0.1 -t 20 --token ORE
 ```
 
 ### Stake and Mine
 Mine with stORE to earn staking rewards while mining:
 ```bash
-refinore mine -a 0.01 -t 15 --token stORE -r medium
+refinore mine -a 0.01 -t 15 --token stORE
 ```
 
 ## Automation Examples
 
-### Shell Script for 24/7 Mining
+### Shell Script for Smart 24/7 Mining
 ```bash
 #!/bin/bash
-# mine-forever.sh
+# smart-mine.sh - Mine with EV threshold
 
 while true; do
-  echo "Starting mining session..."
-  refinore mine -a 0.01 -t 15 --token SOL -r medium
+  echo "Starting mining session with EV threshold..."
+  refinore mine -a 0.01 -t 15 --token SOL --ev-min 5
   
-  # If mining stops unexpectedly, wait and restart
+  # If mining stops, wait and check again
   echo "Session ended. Waiting 30s before restart..."
   sleep 30
 done
@@ -122,13 +154,13 @@ done
 ### Check Balance Before Mining
 ```bash
 #!/bin/bash
-# smart-mine.sh - Only mine if balance > 0.1 SOL
+# balance-check.sh - Only mine if balance > 0.1 SOL
 
 BALANCE=$(refinore balance | grep "SOL" | awk '{print $2}')
 
 if (( $(echo "$BALANCE > 0.1" | bc -l) )); then
   echo "Balance sufficient ($BALANCE SOL), starting mining..."
-  refinore mine -a 0.01 -t 15 --token SOL -r medium
+  refinore mine -a 0.01 -t 15 --token SOL --ev-min 5
 else
   echo "Balance too low ($BALANCE SOL), skipping..."
 fi
@@ -136,43 +168,53 @@ fi
 
 ## Strategy Examples
 
-### Motherlode Hunter
-When motherlode is high, use all tiles to maximize chances:
-```bash
-# Check current round info
-refinore status
-
-# If motherlode > 100 ORE, go full degen
-refinore mine -a 0.02 -t 25 -r high
-```
-
 ### EV-Based Strategy
 ```bash
 #!/bin/bash
-# ev-mine.sh - Only mine when Expected Value is positive
+# ev-strategy.sh - Adjust strategy based on current EV
 
-EV=$(refinore status | grep "Expected Value" | awk '{print $3}' | tr -d '%+')
+# Get current round info from status
+refinore status > /tmp/status.txt
+EV=$(grep "Expected Value" /tmp/status.txt | awk '{print $3}' | tr -d '%+')
 
-if (( $(echo "$EV > 5" | bc -l) )); then
-  echo "EV is positive ($EV%), mining..."
-  refinore mine -a 0.02 -t 20 -r high
+if (( $(echo "$EV > 10" | bc -l) )); then
+  echo "Very high EV ($EV%), aggressive mining..."
+  refinore mine -a 0.05 -t 25
+elif (( $(echo "$EV > 5" | bc -l) )); then
+  echo "Good EV ($EV%), standard mining..."
+  refinore mine -a 0.02 -t 20
 elif (( $(echo "$EV > 0" | bc -l) )); then
-  echo "EV is slightly positive ($EV%), conservative mining..."
-  refinore mine -a 0.01 -t 10 -r low
+  echo "Positive EV ($EV%), conservative mining..."
+  refinore mine -a 0.01 -t 10
 else
-  echo "EV is negative ($EV%), skipping this round..."
+  echo "Negative EV ($EV%), skipping this round..."
 fi
+```
+
+### Motherlode Tracking
+Monitor and mine based on jackpot size:
+```bash
+#!/bin/bash
+# motherlode-tracker.sh
+
+while true; do
+  refinore status | grep "Motherlode"
+  
+  # Mine when motherlode is high
+  refinore mine -a 0.01 -t 15 --motherlode-min 80
+  
+  sleep 60
+done
 ```
 
 ### Diversified Mining
 Spread risk across multiple tokens:
 ```bash
 # Mine with SOL
-refinore mine -a 0.01 -t 10 --token SOL -r medium &
-sleep 5
+refinore mine -a 0.01 -t 10 --token SOL --ev-min 5 &
 
-# Mine with USDC
-refinore mine -a 10 -t 10 --token USDC -r medium &
+# Mine with USDC (in a separate session if supported)
+# refinore mine -a 10 -t 10 --token USDC --ev-min 5 &
 ```
 
 ## Monitoring Examples
@@ -189,7 +231,9 @@ watch -n 10 refinore status
 refinore history -l 100 > history.txt
 
 # Calculate win rate
-grep "WIN" history.txt | wc -l
+TOTAL=$(grep -c "Round" history.txt)
+WINS=$(grep -c "WIN" history.txt)
+echo "Win rate: $WINS / $TOTAL"
 ```
 
 ### Balance Alerts
@@ -229,7 +273,8 @@ RUN npm install -g refinore-cli
 
 ENV REFINORE_API_KEY=rsk_your_key_here
 
-CMD ["refinore", "mine", "-a", "0.01", "-t", "15", "--token", "SOL"]
+# Mine with EV threshold
+CMD ["refinore", "mine", "-a", "0.01", "-t", "15", "--token", "SOL", "--ev-min", "5"]
 ```
 
 Build and run:
@@ -264,12 +309,39 @@ node --version  # Should be >= 14.0.0
 ## Tips
 
 1. **Start small**: Test with 0.005-0.01 SOL per round first
-2. **Monitor EV**: Only mine when Expected Value is positive
-3. **Watch motherlode**: Increase tiles when jackpot is high
-4. **Use stablecoins**: Mine with USDC if you're risk-averse
-5. **Auto-restart**: Keep it enabled for 24/7 mining
-6. **Check history**: Review your results and adjust strategy
-7. **Compound earnings**: Use ORE token to reinvest profits
+2. **Use EV thresholds**: Set `--ev-min 5` to mine only profitable rounds
+3. **Watch motherlode**: Use `--motherlode-min` to target high-value rounds
+4. **Set budget limits**: Use `--sol-deployed-max` to control total spending
+5. **Use stablecoins**: Mine with USDC if you're risk-averse
+6. **Auto-restart**: Keep it enabled for 24/7 mining
+7. **Check history**: Review your results and adjust thresholds
+8. **Compound earnings**: Use ORE token to reinvest profits
+
+## Real-World Scenarios
+
+### Scenario 1: Conservative Investor
+"I want steady returns with minimal risk"
+```bash
+refinore mine -a 0.005 -t 10 --token USDC --ev-min 5 --sol-deployed-max 100
+```
+
+### Scenario 2: Jackpot Hunter
+"I only want to mine when the motherlode is huge"
+```bash
+refinore mine -a 0.05 -t 25 --motherlode-min 200
+```
+
+### Scenario 3: Smart Automation
+"Mine 24/7 but only when it makes sense"
+```bash
+refinore mine -a 0.01 -t 15 --ev-min 3 --motherlode-min 50 --auto-restart
+```
+
+### Scenario 4: Budget-Conscious
+"I have 100 SOL to spend, make it count"
+```bash
+refinore mine -a 0.01 -t 15 --ev-min 5 --sol-deployed-max 100
+```
 
 ## Support
 
