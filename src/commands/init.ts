@@ -38,6 +38,12 @@ export async function initCommand(): Promise<void> {
       message: 'API URL (press Enter for default):',
       default: 'https://automine.refinore.com/api',
     },
+    {
+      type: 'confirm',
+      name: 'setThresholds',
+      message: 'Set default mining thresholds? (optional)',
+      default: false,
+    },
   ]);
 
   const spinner = ora('Validating API key...').start();
@@ -54,10 +60,63 @@ export async function initCommand(): Promise<void> {
       successMessage(`Connected to wallet: ${chalk.bold(walletAddress)}`);
     }
 
+    let evMin: number | undefined;
+    let motherlodeMin: number | undefined;
+    let solDeployedMax: number | undefined;
+
+    // Ask for thresholds if user wants them
+    if (answers.setThresholds) {
+      const thresholdAnswers = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'evMin',
+          message: 'Minimum EV% to mine (leave blank for none):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+        {
+          type: 'input',
+          name: 'motherlodeMin',
+          message: 'Minimum motherlode ORE to mine (leave blank for none):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+        {
+          type: 'input',
+          name: 'solDeployedMax',
+          message: 'Maximum total SOL deployed (leave blank for none):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+      ]);
+
+      evMin = thresholdAnswers.evMin ? parseFloat(thresholdAnswers.evMin) : undefined;
+      motherlodeMin = thresholdAnswers.motherlodeMin ? parseFloat(thresholdAnswers.motherlodeMin) : undefined;
+      solDeployedMax = thresholdAnswers.solDeployedMax ? parseFloat(thresholdAnswers.solDeployedMax) : undefined;
+    }
+
     saveConfig({
       apiKey: answers.apiKey,
       apiUrl: answers.apiUrl,
       walletAddress: walletAddress,
+      evMin,
+      motherlodeMin,
+      solDeployedMax,
     });
 
     successMessage('Configuration saved to ~/.refinore/config.json');

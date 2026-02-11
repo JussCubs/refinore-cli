@@ -70,8 +70,10 @@ Start a new mining session.
 - `-a, --amount <amount>` - Amount to deploy per round (default: 0.01)
 - `-t, --tiles <tiles>` - Number of tiles 1-25 (default: 15)
 - `--token <token>` - Mining token: SOL, USDC, ORE, stORE, SKR (default: SOL)
-- `-r, --risk <risk>` - Risk tolerance: low, medium, high (default: medium)
 - `-m, --mode <mode>` - Tile selection: optimal, random, custom (default: optimal)
+- `--ev-min <number>` - Minimum EV% to mine (e.g., 5 = only mine if EV > 5%)
+- `--motherlode-min <number>` - Minimum motherlode ORE to mine
+- `--sol-deployed-max <number>` - Maximum total SOL deployed to mine
 - `--no-auto-restart` - Disable auto-restart after each round
 
 **Examples:**
@@ -80,16 +82,25 @@ Start a new mining session.
 refinore mine
 
 # Quick start with defaults
-refinore mine -a 0.01 -t 15 --token SOL -r medium
+refinore mine -a 0.01 -t 15 --token SOL
 
-# Conservative mining
-refinore mine -a 0.005 -t 10 -r low
+# Conservative mining (fewer tiles)
+refinore mine -a 0.005 -t 10
 
 # Aggressive (all tiles)
-refinore mine -a 0.02 -t 25 -r high
+refinore mine -a 0.02 -t 25
 
 # Mine with USDC (stablecoin)
 refinore mine -a 0.01 -t 15 --token USDC
+
+# Only mine when EV is positive
+refinore mine -a 0.01 -t 15 --ev-min 5
+
+# Only mine when motherlode is big
+refinore mine -a 0.01 -t 15 --motherlode-min 100
+
+# Only mine in low-competition rounds
+refinore mine -a 0.01 -t 15 --sol-deployed-max 1000
 ```
 
 ### `refinore status`
@@ -146,11 +157,21 @@ You can also use environment variables:
 - **random** - Random tile selection (higher variance)
 - **custom** - Manual tile selection (advanced)
 
-### Risk Tolerance
+### Advanced Thresholds
 
-- **low** - Conservative, fewer tiles, steady returns
-- **medium** (default) - Balanced approach
-- **high** - Aggressive, more tiles, higher variance
+Control when to mine based on round conditions:
+
+- **--ev-min** - Only mine when Expected Value (EV) exceeds this percentage
+  - Example: `--ev-min 5` = only mine rounds with EV > 5%
+  - Helps avoid negative EV rounds and maximizes profitability
+
+- **--motherlode-min** - Only mine when motherlode jackpot is large enough
+  - Example: `--motherlode-min 100` = only mine when motherlode > 100 ORE
+  - Great for jackpot hunting strategies
+
+- **--sol-deployed-max** - Only mine in low-competition rounds
+  - Example: `--sol-deployed-max 1000` = skip rounds with >1000 SOL deployed
+  - Reduces competition and increases win probability
 
 ### Multi-Coin Mining
 

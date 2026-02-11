@@ -9,9 +9,11 @@ interface MineOptions {
   amount?: string;
   tiles?: string;
   token?: string;
-  risk?: string;
   mode?: string;
   autoRestart?: boolean;
+  evMin?: string;
+  motherlodeMin?: string;
+  solDeployedMax?: string;
 }
 
 export async function mineCommand(options: MineOptions): Promise<void> {
@@ -70,16 +72,22 @@ export async function mineCommand(options: MineOptions): Promise<void> {
   let amount: number;
   let tiles: number;
   let token: string;
-  let risk: string;
   let mode: string;
+  let evMin: number | undefined;
+  let motherlodeMin: number | undefined;
+  let solDeployedMax: number | undefined;
 
-  if (options.amount && options.tiles && options.token && options.risk) {
-    // All options provided via CLI
+  if (options.amount && options.tiles && options.token) {
+    // Core options provided via CLI
     amount = parseFloat(options.amount);
     tiles = parseInt(options.tiles);
     token = options.token.toUpperCase();
-    risk = options.risk.toLowerCase();
     mode = options.mode || 'optimal';
+    
+    // Optional thresholds
+    evMin = options.evMin ? parseFloat(options.evMin) : undefined;
+    motherlodeMin = options.motherlodeMin ? parseFloat(options.motherlodeMin) : undefined;
+    solDeployedMax = options.solDeployedMax ? parseFloat(options.solDeployedMax) : undefined;
   } else {
     // Interactive prompt
     const answers = await inquirer.prompt([
@@ -118,25 +126,69 @@ export async function mineCommand(options: MineOptions): Promise<void> {
       },
       {
         type: 'list',
-        name: 'risk',
-        message: 'Risk tolerance:',
-        choices: ['low', 'medium', 'high'],
-        default: 'medium',
-      },
-      {
-        type: 'list',
         name: 'mode',
         message: 'Tile selection mode:',
         choices: ['optimal', 'random', 'custom'],
         default: 'optimal',
+      },
+      {
+        type: 'confirm',
+        name: 'useThresholds',
+        message: 'Set advanced thresholds? (EV%, motherlode, SOL deployed)',
+        default: false,
       },
     ]);
 
     amount = parseFloat(answers.amount);
     tiles = parseInt(answers.tiles);
     token = answers.token;
-    risk = answers.risk;
     mode = answers.mode;
+
+    // Ask for thresholds if user wants them
+    if (answers.useThresholds) {
+      const thresholdAnswers = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'evMin',
+          message: 'Minimum EV% to mine (leave blank for no minimum):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+        {
+          type: 'input',
+          name: 'motherlodeMin',
+          message: 'Minimum motherlode ORE to mine (leave blank for no minimum):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+        {
+          type: 'input',
+          name: 'solDeployedMax',
+          message: 'Maximum total SOL deployed (leave blank for no maximum):',
+          default: '',
+          validate: (input: string) => {
+            if (input === '') return true;
+            const num = parseFloat(input);
+            if (isNaN(num)) return 'Must be a number or blank';
+            return true;
+          },
+        },
+      ]);
+
+      evMin = thresholdAnswers.evMin ? parseFloat(thresholdAnswers.evMin) : undefined;
+      motherlodeMin = thresholdAnswers.motherlodeMin ? parseFloat(thresholdAnswers.motherlodeMin) : undefined;
+      solDeployedMax = thresholdAnswers.solDeployedMax ? parseFloat(thresholdAnswers.solDeployedMax) : undefined;
+    }
   }
 
   const startSpinner = ora('Starting mining session...').start();
@@ -147,10 +199,12 @@ export async function mineCommand(options: MineOptions): Promise<void> {
       sol_amount: amount,
       num_squares: tiles,
       tile_selection_mode: mode,
-      risk_tolerance: risk,
       mining_token: token,
       auto_restart: options.autoRestart !== false,
       frequency: 'every_round',
+      ev_threshold: evMin,
+      motherlode_threshold: motherlodeMin,
+      sol_deployed_max: solDeployedMax,
     });
 
     startSpinner.succeed('Mining session started!');
@@ -159,8 +213,18 @@ export async function mineCommand(options: MineOptions): Promise<void> {
     console.log(chalk.gray('  Amount: ') + chalk.white(`${amount} ${token}`));
     console.log(chalk.gray('  Tiles: ') + chalk.white(tiles));
     console.log(chalk.gray('  Strategy: ') + chalk.white(mode));
-    console.log(chalk.gray('  Risk: ') + chalk.white(risk));
     console.log(chalk.gray('  Auto-restart: ') + chalk.white(options.autoRestart !== false ? 'Yes' : 'No'));
+    
+    if (evMin !== undefined) {
+      console.log(chalk.gray('  Min EV: ') + chalk.white(`${evMin}%`));
+    }
+    if (motherlodeMin !== undefined) {
+      console.log(chalk.gray('  Min Motherlode: ') + chalk.white(`${motherlodeMin} ORE`));
+    }
+    if (solDeployedMax !== undefined) {
+      console.log(chalk.gray('  Max SOL Deployed: ') + chalk.white(`${solDeployedMax} SOL`));
+    }
+    
     console.log();
     infoMessage('Monitor progress with: ' + chalk.white('refinore status'));
     console.log();

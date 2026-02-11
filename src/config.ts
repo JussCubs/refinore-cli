@@ -6,6 +6,9 @@ export interface Config {
   apiKey: string;
   apiUrl?: string;
   walletAddress?: string;
+  evMin?: number;
+  motherlodeMin?: number;
+  solDeployedMax?: number;
 }
 
 const CONFIG_DIR = path.join(os.homedir(), '.refinore');

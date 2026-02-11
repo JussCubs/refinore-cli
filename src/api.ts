@@ -16,7 +16,7 @@ export class RefinoreAPI {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
-      'User-Agent': 'refinore-cli/1.0.0',
+      'User-Agent': 'refinore-cli/1.1.0',
     };
 
     const options: RequestInit = {
@@ -72,10 +72,12 @@ export class RefinoreAPI {
     sol_amount: number;
     num_squares: number;
     tile_selection_mode?: string;
-    risk_tolerance?: string;
     mining_token?: string;
     auto_restart?: boolean;
     frequency?: string;
+    ev_threshold?: number;
+    motherlode_threshold?: number;
+    sol_deployed_max?: number;
   }): Promise<any> {
     return this.request('POST', '/mining/start', params);
   }

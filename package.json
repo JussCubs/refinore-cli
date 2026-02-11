@@ -1,6 +1,6 @@
 {
   "name": "refinore-cli",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "CLI tool for ORE mining on Solana via refinORE",
   "main": "dist/index.js",
   "bin": {

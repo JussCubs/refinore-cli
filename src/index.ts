@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name('refinore')
   .description('CLI tool for ORE mining on Solana via refinORE')
-  .version('1.0.0');
+  .version('1.1.0');
 
 // Init command
 program
@@ -38,8 +38,10 @@ program
   .option('-a, --amount <amount>', 'Amount to deploy per round')
   .option('-t, --tiles <tiles>', 'Number of tiles (1-25)')
   .option('--token <token>', 'Mining token (SOL, USDC, ORE, stORE, SKR)')
-  .option('-r, --risk <risk>', 'Risk tolerance (low, medium, high)')
   .option('-m, --mode <mode>', 'Tile selection mode (optimal, random, custom)')
+  .option('--ev-min <number>', 'Minimum EV% to mine (e.g., 5 = only mine if EV > 5%)')
+  .option('--motherlode-min <number>', 'Minimum motherlode ORE to mine')
+  .option('--sol-deployed-max <number>', 'Maximum total SOL deployed to mine')
   .option('--no-auto-restart', 'Disable auto-restart')
   .action(async (options) => {
     try {
@@ -154,7 +156,6 @@ program
         amount: '0.01',
         tiles: '15',
         token: 'SOL',
-        risk: 'medium',
         mode: 'optimal',
         autoRestart: true,
       });
