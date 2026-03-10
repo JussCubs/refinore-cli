@@ -124,6 +124,66 @@ Show recent mining rounds with results.
 refinore history -l 50
 ```
 
+### `refinore tiles`
+Show hot/cold tile statistics — which tiles have won the most/least recently.
+
+**Options:**
+- `-l, --limit <limit>` - Number of rounds to analyze (default: 100)
+
+**Example:**
+```bash
+refinore tiles -l 200
+```
+
+### `refinore rounds`
+Show your personal round-by-round deployment history with full details (tiles used, EV, results, winnings).
+
+**Options:**
+- `-l, --limit <limit>` - Number of rounds to show (default: 50)
+- `--offset <offset>` - Pagination offset (default: 0)
+- `-s, --session <session_id>` - Filter to a specific session
+
+**Example:**
+```bash
+refinore rounds -l 100
+refinore rounds --session abc123
+```
+
+### `refinore strategy list`
+List all saved mining strategies.
+
+### `refinore strategy start <id>`
+Start mining with a saved strategy.
+
+### `refinore strategy edit <id>`
+Live-edit a strategy between rounds — changes apply on the next deployment, no restart needed.
+
+**Options:**
+- `--sol-amount <amount>` - New SOL amount per round
+- `--num-squares <n>` - New number of tiles
+- `--mode <mode>` - Tile selection mode (optimal, random, custom, odd, even)
+- `--tiles <tiles>` - Custom tile indices, comma-separated (e.g., 0,5,12,18,24)
+- `--skip-last` - Skip the tile that won last round
+- `--token <token>` - Mining token (SOL, USDC, ORE, stORE, SKR)
+- `--timing <seconds>` - Deployment timing in seconds
+- `--motherlode-min <ore>` - Minimum motherlode ORE to deploy
+- `--sol-deployed-max <sol>` - Max total SOL deployed before skipping
+
+**Examples:**
+```bash
+# Switch to custom tiles mid-session
+refinore strategy edit abc123 --mode custom --tiles 0,5,12,18,24
+
+# Increase SOL amount and add motherlode threshold
+refinore strategy edit abc123 --sol-amount 0.05 --motherlode-min 100
+
+# Change token without stopping
+refinore strategy edit abc123 --token USDC
+```
+
+### `refinore strategy delete <id>`
+Delete a saved strategy.
+
 ### `refinore deposit`
 Show deposit instructions and your wallet address.
 

@@ -8,7 +8,7 @@ export class RefinoreAPI {
   }
 
   private async request<T>(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     path: string,
     body?: Record<string, unknown>
   ): Promise<T> {
@@ -16,7 +16,7 @@ export class RefinoreAPI {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
-      'User-Agent': 'refinore-cli/1.1.0',
+      'User-Agent': 'refinore-cli/1.2.0',
     };
 
     const options: RequestInit = {
@@ -24,7 +24,7 @@ export class RefinoreAPI {
       headers,
     };
 
-    if (body && method === 'POST') {
+    if (body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
       options.body = JSON.stringify(body);
     }
 
@@ -63,8 +63,19 @@ export class RefinoreAPI {
   }
 
   async getCurrentRound(): Promise<any> {
-    // Public endpoint - but we'll still send the key
     return this.request('GET', '/rounds/current');
+  }
+
+  async getTileStats(limit: number = 100): Promise<any> {
+    return this.request('GET', `/rounds/tile-stats?limit=${limit}`);
+  }
+
+  async getRoundHistory(limit: number = 50, offset: number = 0, sessionId?: string): Promise<any> {
+    let path = `/rounds/my-history?limit=${limit}&offset=${offset}`;
+    if (sessionId) {
+      path += `&session_id=${encodeURIComponent(sessionId)}`;
+    }
+    return this.request('GET', path);
   }
 
   async startMining(params: {
@@ -92,5 +103,27 @@ export class RefinoreAPI {
 
   async getLastConfig(): Promise<any> {
     return this.request('GET', '/mining/last-config');
+  }
+
+  // Strategy management
+
+  async listStrategies(): Promise<any> {
+    return this.request('GET', '/auto-strategies');
+  }
+
+  async createStrategy(params: Record<string, unknown>): Promise<any> {
+    return this.request('POST', '/auto-strategies', params);
+  }
+
+  async liveEditStrategy(strategyId: string, updates: Record<string, unknown>): Promise<any> {
+    return this.request('PATCH', `/auto-strategies/${encodeURIComponent(strategyId)}/live`, updates);
+  }
+
+  async deleteStrategy(strategyId: string): Promise<any> {
+    return this.request('DELETE', `/auto-strategies/${encodeURIComponent(strategyId)}`);
+  }
+
+  async startStrategy(strategyId: string): Promise<any> {
+    return this.request('POST', '/mining/start-strategy', { strategy_id: strategyId });
   }
 }
