@@ -16,7 +16,7 @@ export class RefinoreAPI {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
-      'User-Agent': 'refinore-cli/1.2.0',
+      'User-Agent': 'refinore-cli/1.3.0',
     };
 
     const options: RequestInit = {
@@ -125,5 +125,29 @@ export class RefinoreAPI {
 
   async startStrategy(strategyId: string): Promise<any> {
     return this.request('POST', '/mining/start-strategy', { strategy_id: strategyId });
+  }
+
+  // Swap order management
+
+  async listSwapOrders(): Promise<any> {
+    return this.request('GET', '/auto-swap-orders');
+  }
+
+  async createSwapOrder(params: Record<string, unknown>): Promise<any> {
+    return this.request('POST', '/auto-swap-orders', params);
+  }
+
+  async deleteSwapOrder(orderId: string): Promise<any> {
+    return this.request('DELETE', `/auto-swap-orders/${encodeURIComponent(orderId)}`);
+  }
+
+  async getSwapHistory(limit: number = 10, offset: number = 0): Promise<any> {
+    return this.request('GET', `/auto-swap-orders/history?limit=${limit}&offset=${offset}`);
+  }
+
+  // Live session editing
+
+  async editSession(updates: Record<string, unknown>): Promise<any> {
+    return this.request('PATCH', '/mining/session/edit', updates);
   }
 }

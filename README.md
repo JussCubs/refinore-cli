@@ -184,6 +184,85 @@ refinore strategy edit abc123 --token USDC
 ### `refinore strategy delete <id>`
 Delete a saved strategy.
 
+### `refinore edit`
+Live-edit an active manual mining session between rounds. Changes take effect on the next deployment — no restart needed.
+
+**Options:**
+- `--sol-amount <amount>` - New SOL amount per round
+- `--num-squares <n>` - New number of tiles (1-25)
+- `--mode <mode>` - Tile selection mode (optimal, random, custom, odd, even)
+- `--tiles <tiles>` - Custom tile indices, comma-separated (e.g., 0,5,12,18,24)
+- `--skip-last` - Skip the tile that won last round
+- `--token <token>` - Mining token (SOL, USDC, ORE, stORE, SKR)
+- `--timing <seconds>` - Deployment timing in seconds (0-60)
+- `--risk <risk>` - Risk tolerance (degen, risky, less-risky, positive-ev)
+- `--ev-threshold <number>` - Custom EV % threshold
+- `--motherlode-min <ore>` - Minimum motherlode ORE to deploy
+- `--sol-deployed-max <sol>` - Max total SOL deployed
+
+**Examples:**
+```bash
+# Increase deployment amount mid-session
+refinore edit --sol-amount 0.05
+
+# Switch to custom tiles and bump risk
+refinore edit --mode custom --tiles 0,5,12,18,24 --risk degen
+
+# Add motherlode threshold without stopping
+refinore edit --motherlode-min 100
+
+# Change token and tile count
+refinore edit --token USDC --num-squares 20
+```
+
+> Note: For strategy-based sessions, use `refinore strategy edit <id>` instead.
+
+### `refinore swap list`
+List all active DCA and limit orders.
+
+### `refinore swap create`
+Create a new DCA or limit swap order.
+
+**Options:**
+- `--type <type>` - Order type: `dca` or `limit` (required)
+- `--input <token>` - Input token: SOL, USDC, ORE, stORE, SKR (required)
+- `--output <token>` - Output token: SOL, USDC, ORE, stORE, SKR (required)
+- `--amount <amount>` - Amount per execution (required)
+- `--interval <hours>` - Hours between DCA executions (DCA only)
+- `--total-orders <n>` - Total number of DCA executions (DCA only)
+- `--target-price <price>` - Target price for limit order (limit only)
+- `--direction <dir>` - `buy` or `sell` (limit only)
+
+**Examples:**
+```bash
+# DCA into ORE: buy 0.1 SOL worth of ORE every 24 hours, 30 times
+refinore swap create --type dca --input SOL --output ORE --amount 0.1 --interval 24 --total-orders 30
+
+# Limit order: buy ORE when price drops to $60
+refinore swap create --type limit --input SOL --output ORE --amount 1.0 --target-price 60.00 --direction buy
+
+# DCA into stORE with USDC
+refinore swap create --type dca --input USDC --output stORE --amount 5.0 --interval 12 --total-orders 60
+```
+
+### `refinore swap delete <id>`
+Cancel and delete an active swap order.
+
+```bash
+refinore swap delete order-abc123
+```
+
+### `refinore swap history`
+Show execution history for completed and partially-filled swap orders.
+
+**Options:**
+- `-l, --limit <limit>` - Number of records to show (default: 50)
+
+```bash
+refinore swap history
+refinore swap history -l 100
+```
+
 ### `refinore deposit`
 Show deposit instructions and your wallet address.
 

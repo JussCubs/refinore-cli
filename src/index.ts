@@ -13,13 +13,15 @@ import { whoamiCommand } from './commands/whoami';
 import { tilesCommand } from './commands/tiles';
 import { roundsCommand } from './commands/rounds';
 import { strategyListCommand, strategyStartCommand, strategyEditCommand, strategyDeleteCommand } from './commands/strategy';
+import { swapListCommand, swapCreateCommand, swapDeleteCommand, swapHistoryCommand } from './commands/swap';
+import { editCommand } from './commands/edit';
 
 const program = new Command();
 
 program
   .name('refinore')
   .description('CLI tool for ORE mining on Solana via refinORE')
-  .version('1.2.0');
+  .version('1.3.0');
 
 // Init command
 program
@@ -194,6 +196,96 @@ strategy
   .action(async (id) => {
     try {
       await strategyDeleteCommand(id);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Swap command group
+const swap = program
+  .command('swap')
+  .description('Manage DCA and limit swap orders');
+
+swap
+  .command('list')
+  .description('List all swap orders')
+  .action(async () => {
+    try {
+      await swapListCommand();
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+swap
+  .command('create')
+  .description('Create a DCA or limit swap order')
+  .requiredOption('--name <name>', 'Order name')
+  .requiredOption('--type <type>', 'Order type (dca, limit)')
+  .requiredOption('--swap-type <swapType>', 'Swap direction (buy, sell)')
+  .requiredOption('--trigger-field <field>', 'Trigger field (ore_price, time)')
+  .requiredOption('--trigger-operator <op>', 'Trigger operator (gt, gte, lt, lte, eq)')
+  .requiredOption('--ore-amount <amount>', 'ORE amount per execution')
+  .option('--trigger-value <value>', 'Trigger value')
+  .option('--timing <seconds>', 'Execution timing in seconds (0-60)', '30')
+  .option('--repeat', 'Enable recurring execution')
+  .option('--interval <rounds>', 'Rounds between executions', '1')
+  .option('--max-executions <n>', 'Maximum total executions')
+  .action(async (options) => {
+    try {
+      await swapCreateCommand(options);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+swap
+  .command('delete <id>')
+  .description('Delete a swap order')
+  .action(async (id) => {
+    try {
+      await swapDeleteCommand(id);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+swap
+  .command('history')
+  .description('Show swap operation history')
+  .option('-l, --limit <limit>', 'Number of operations to show', '10')
+  .option('--offset <offset>', 'Pagination offset', '0')
+  .action(async (options) => {
+    try {
+      await swapHistoryCommand(options);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Edit command (live-edit active session)
+program
+  .command('edit')
+  .description('Live-edit the active mining session (changes apply next round)')
+  .option('--sol-amount <amount>', 'New SOL amount per round')
+  .option('--num-squares <n>', 'New number of tiles')
+  .option('-m, --mode <mode>', 'Tile selection mode (optimal, random, custom, odd, even)')
+  .option('--tiles <tiles>', 'Custom tile indices, comma-separated (e.g., 0,5,12,18,24)')
+  .option('--skip-last', 'Skip the tile that won last round')
+  .option('--token <token>', 'Mining token (SOL, USDC, ORE, stORE, SKR)')
+  .option('--timing <seconds>', 'Deployment timing in seconds')
+  .option('--risk <risk>', 'Risk tolerance (degen, risky, less-risky, positive-ev)')
+  .option('--ev-threshold <number>', 'Custom EV threshold percentage')
+  .option('--motherlode-min <ore>', 'Minimum motherlode ORE to deploy')
+  .option('--sol-deployed-max <sol>', 'Max total SOL deployed before skipping')
+  .action(async (options) => {
+    try {
+      await editCommand(options);
     } catch (error: any) {
       console.error(chalk.red('Error:'), error.message);
       process.exit(1);
