@@ -152,6 +152,21 @@ refinore rounds --session abc123
 ### `refinore strategy list`
 List all saved mining strategies.
 
+### `refinore strategy create`
+Create a new simple strategy or a script-backed strategy.
+
+**Examples:**
+```bash
+# Create a regular strategy
+refinore strategy create --name "Degen Hot" --sol-amount 0.01 --num-squares 5 --mode hot --token SOL
+
+# Create a script strategy
+refinore strategy create --name "Mirror 11-19" --script-file ./mirror-script.json --enable-script
+```
+
+### `refinore strategy validate-script <file>`
+Validate a custom strategy script JSON file before saving it. The CLI calls the backend validator, which probes external JSON sources and returns exact path-based errors.
+
 ### `refinore strategy start <id>`
 Start mining with a saved strategy.
 
@@ -168,6 +183,9 @@ Live-edit a strategy between rounds — changes apply on the next deployment, no
 - `--timing <seconds>` - Deployment timing in seconds
 - `--motherlode-min <ore>` - Minimum motherlode ORE to deploy
 - `--sol-deployed-max <sol>` - Max total SOL deployed before skipping
+- `--script-file <path>` - Load and save a custom strategy script JSON file
+- `--enable-script` - Enable custom strategy script execution
+- `--disable-script` - Disable custom strategy script execution
 
 **Examples:**
 ```bash
@@ -179,6 +197,9 @@ refinore strategy edit abc123 --sol-amount 0.05 --motherlode-min 100
 
 # Change token without stopping
 refinore strategy edit abc123 --token USDC
+
+# Update a strategy script live
+refinore strategy edit abc123 --script-file ./mirror-script.json --enable-script
 ```
 
 ### `refinore strategy delete <id>`

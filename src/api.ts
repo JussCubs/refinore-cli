@@ -115,6 +115,12 @@ export class RefinoreAPI {
     return this.request('POST', '/auto-strategies', params);
   }
 
+  async validateStrategyScript(strategyScript: unknown): Promise<any> {
+    return this.request('POST', '/auto-strategies/validate-script', {
+      strategyScript,
+    });
+  }
+
   async liveEditStrategy(strategyId: string, updates: Record<string, unknown>): Promise<any> {
     return this.request('PATCH', `/auto-strategies/${encodeURIComponent(strategyId)}/live`, updates);
   }

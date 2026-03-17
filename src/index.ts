@@ -12,7 +12,7 @@ import { depositCommand } from './commands/deposit';
 import { whoamiCommand } from './commands/whoami';
 import { tilesCommand } from './commands/tiles';
 import { roundsCommand } from './commands/rounds';
-import { strategyListCommand, strategyStartCommand, strategyEditCommand, strategyDeleteCommand } from './commands/strategy';
+import { strategyListCommand, strategyStartCommand, strategyCreateCommand, strategyValidateScriptCommand, strategyEditCommand, strategyDeleteCommand } from './commands/strategy';
 import { swapListCommand, swapCreateCommand, swapDeleteCommand, swapHistoryCommand } from './commands/swap';
 import { editCommand } from './commands/edit';
 
@@ -158,6 +158,44 @@ strategy
   });
 
 strategy
+  .command('create')
+  .description('Create a simple or script-backed strategy')
+  .requiredOption('--name <name>', 'Strategy name')
+  .option('--sol-amount <amount>', 'Default total amount per round')
+  .option('--num-squares <n>', 'Default number of tiles')
+  .option('--mode <mode>', 'Tile selection mode (optimal, random, custom, odd, even, hot, cold)')
+  .option('--tiles <tiles>', 'Custom tile indices 0-24, comma-separated (0=tile 1 in UI, 24=tile 25)')
+  .option('--skip-last', 'Skip the tile that won last round')
+  .option('--token <token>', 'Mining token (SOL, USDC, ORE, stORE, SKR)')
+  .option('--timing <seconds>', 'Deployment timing in seconds')
+  .option('--risk <risk>', 'Risk tolerance (degen, risky, less-risky, positive-ev)')
+  .option('--ev-threshold <number>', 'Custom EV threshold')
+  .option('--motherlode-min <ore>', 'Minimum motherlode ORE to deploy')
+  .option('--sol-deployed-max <sol>', 'Max total SOL deployed before skipping')
+  .option('--script-file <path>', 'Path to a custom strategy script JSON file')
+  .option('--enable-script', 'Enable the script immediately when saving')
+  .action(async (options) => {
+    try {
+      await strategyCreateCommand(options);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+strategy
+  .command('validate-script <file>')
+  .description('Validate a custom strategy script JSON file')
+  .action(async (file) => {
+    try {
+      await strategyValidateScriptCommand(file);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+strategy
   .command('start <id>')
   .description('Start mining with a saved strategy')
   .action(async (id) => {
@@ -181,6 +219,9 @@ strategy
   .option('--timing <seconds>', 'Deployment timing in seconds')
   .option('--motherlode-min <ore>', 'Minimum motherlode ORE to deploy')
   .option('--sol-deployed-max <sol>', 'Max total SOL deployed before skipping')
+  .option('--script-file <path>', 'Path to a custom strategy script JSON file')
+  .option('--enable-script', 'Enable custom strategy script execution')
+  .option('--disable-script', 'Disable custom strategy script execution')
   .action(async (id, options) => {
     try {
       await strategyEditCommand(id, options);
