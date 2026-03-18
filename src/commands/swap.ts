@@ -4,6 +4,101 @@ import { loadConfig, getApiUrl, getApiKey } from '../config';
 import { RefinoreAPI } from '../api';
 import { createTable, header, errorMessage, successMessage, infoMessage } from '../utils';
 
+interface DirectSwapOptions {
+  from: string;
+  to: string;
+  amount: string;
+  slippage?: string;
+}
+
+export async function swapQuoteCommand(options: DirectSwapOptions): Promise<void> {
+  const config = loadConfig();
+  const apiKey = getApiKey(config);
+
+  if (!apiKey) {
+    errorMessage('Not configured. Run: refinore init');
+    process.exit(1);
+  }
+
+  if (!options.from || !options.to || !options.amount) {
+    errorMessage('Missing required options. Use --from, --to, and --amount');
+    process.exit(1);
+  }
+
+  const spinner = ora('Fetching direct swap quote...').start();
+
+  try {
+    const api = new RefinoreAPI(getApiUrl(config), apiKey);
+    const result = await api.quoteSwap({
+      input_token: options.from,
+      output_token: options.to,
+      amount: parseFloat(options.amount),
+      max_slippage_bps: options.slippage ? parseInt(options.slippage, 10) : 300,
+    });
+
+    spinner.succeed('Swap quote loaded');
+
+    const quote = result.quote;
+    header(`🔁 Quote: ${quote.input_token} → ${quote.output_token}`);
+    console.log();
+    console.log(chalk.gray('  Input:        ') + chalk.white(`${quote.input_amount} ${quote.input_token}`));
+    console.log(chalk.gray('  Expected Out: ') + chalk.white(`${quote.expected_output_amount} ${quote.output_token}`));
+    console.log(chalk.gray('  Price Impact: ') + chalk.white(`${Number(quote.price_impact_pct || 0).toFixed(4)}%`));
+    console.log(chalk.gray('  Slippage:     ') + chalk.white(`${quote.max_slippage_bps} bps`));
+    console.log(chalk.gray('  Wallet:       ') + chalk.white(quote.wallet_address));
+    console.log();
+  } catch (error: any) {
+    spinner.fail('Failed to fetch swap quote');
+    errorMessage(error.message);
+    process.exit(1);
+  }
+}
+
+export async function swapExecuteCommand(options: DirectSwapOptions): Promise<void> {
+  const config = loadConfig();
+  const apiKey = getApiKey(config);
+
+  if (!apiKey) {
+    errorMessage('Not configured. Run: refinore init');
+    process.exit(1);
+  }
+
+  if (!options.from || !options.to || !options.amount) {
+    errorMessage('Missing required options. Use --from, --to, and --amount');
+    process.exit(1);
+  }
+
+  const spinner = ora(`Swapping ${options.amount} ${options.from} → ${options.to}...`).start();
+
+  try {
+    const api = new RefinoreAPI(getApiUrl(config), apiKey);
+    const result = await api.executeSwap({
+      input_token: options.from,
+      output_token: options.to,
+      amount: parseFloat(options.amount),
+      max_slippage_bps: options.slippage ? parseInt(options.slippage, 10) : 300,
+    });
+
+    spinner.succeed('Swap executed');
+
+    const swap = result.swap;
+    console.log();
+    console.log(chalk.gray('  Input:        ') + chalk.white(`${swap.input_amount} ${swap.input_token}`));
+    console.log(chalk.gray('  Quoted Out:   ') + chalk.white(`${swap.quoted_output_amount} ${swap.output_token}`));
+    console.log(chalk.gray('  Actual Out:   ') + chalk.white(`${swap.actual_output_amount} ${swap.output_token}`));
+    console.log(chalk.gray('  Price Impact: ') + chalk.white(`${Number(swap.price_impact_pct || 0).toFixed(4)}%`));
+    console.log(chalk.gray('  Signature:    ') + chalk.white(swap.signature || 'n/a'));
+    if (swap.solscan_url) {
+      console.log(chalk.gray('  Solscan:      ') + chalk.cyan(swap.solscan_url));
+    }
+    console.log();
+  } catch (error: any) {
+    spinner.fail('Failed to execute swap');
+    errorMessage(error.message);
+    process.exit(1);
+  }
+}
+
 export async function swapListCommand(): Promise<void> {
   const config = loadConfig();
   const apiKey = getApiKey(config);
@@ -183,15 +278,15 @@ export async function swapHistoryCommand(options: SwapHistoryOptions): Promise<v
 
     header(`📋 Swap History (${ops.length} of ${data.total})`);
 
-    const table = createTable(['Round', 'Type', 'Status', 'Details', 'Order']);
+    const table = createTable(['Round', 'Source', 'Status', 'Swap', 'Tx']);
 
     for (const op of ops) {
       table.push([
         chalk.gray(op.round_number || '-'),
-        op.entry_type === 'swap' ? chalk.cyan('SWAP') : chalk.gray(op.entry_type || '-'),
+        chalk.cyan(op.matched_rule_name || 'Direct swap'),
         op.swap_executed ? chalk.green('OK') : chalk.red('FAIL'),
-        chalk.white(op.skip_reason || '-'),
-        chalk.gray(op.matched_rule_name || '-'),
+        chalk.white(op.swap_summary || op.skip_reason || '-'),
+        chalk.gray(op.signature ? `${String(op.signature).slice(0, 8)}...` : '-'),
       ]);
     }
 

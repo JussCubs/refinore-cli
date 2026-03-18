@@ -16,7 +16,7 @@ export class RefinoreAPI {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-api-key': this.apiKey,
-      'User-Agent': 'refinore-cli/1.3.0',
+      'User-Agent': 'refinore-cli/1.4.0',
     };
 
     const options: RequestInit = {
@@ -137,6 +137,14 @@ export class RefinoreAPI {
 
   async listSwapOrders(): Promise<any> {
     return this.request('GET', '/auto-swap-orders');
+  }
+
+  async quoteSwap(params: Record<string, unknown>): Promise<any> {
+    return this.request('POST', '/swaps/quote', params);
+  }
+
+  async executeSwap(params: Record<string, unknown>): Promise<any> {
+    return this.request('POST', '/swaps/execute', params);
   }
 
   async createSwapOrder(params: Record<string, unknown>): Promise<any> {

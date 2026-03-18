@@ -241,6 +241,22 @@ refinore edit --token USDC --num-squares 20
 ### `refinore swap list`
 List all active DCA and limit orders.
 
+### `refinore swap quote`
+Preview a direct swap quote between any supported refinORE wallet tokens: `SOL`, `USDC`, `ORE`, `stORE`, `SKR`.
+
+```bash
+refinore swap quote --from stORE --to SOL --amount 2
+refinore swap quote --from USDC --to ORE --amount 25 --slippage 150
+```
+
+### `refinore swap execute`
+Execute a direct swap immediately using your embedded refinORE wallet.
+
+```bash
+refinore swap execute --from stORE --to SOL --amount 2
+refinore swap execute --from USDC --to ORE --amount 50 --slippage 250
+```
+
 ### `refinore swap create`
 Create a new DCA or limit swap order.
 
@@ -274,7 +290,7 @@ refinore swap delete order-abc123
 ```
 
 ### `refinore swap history`
-Show execution history for completed and partially-filled swap orders.
+Show execution history for recent direct swaps plus completed and partially-filled swap orders.
 
 **Options:**
 - `-l, --limit <limit>` - Number of records to show (default: 50)

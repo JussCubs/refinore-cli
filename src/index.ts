@@ -13,7 +13,7 @@ import { whoamiCommand } from './commands/whoami';
 import { tilesCommand } from './commands/tiles';
 import { roundsCommand } from './commands/rounds';
 import { strategyListCommand, strategyStartCommand, strategyCreateCommand, strategyValidateScriptCommand, strategyEditCommand, strategyDeleteCommand } from './commands/strategy';
-import { swapListCommand, swapCreateCommand, swapDeleteCommand, swapHistoryCommand } from './commands/swap';
+import { swapListCommand, swapQuoteCommand, swapExecuteCommand, swapCreateCommand, swapDeleteCommand, swapHistoryCommand } from './commands/swap';
 import { editCommand } from './commands/edit';
 
 const program = new Command();
@@ -21,7 +21,7 @@ const program = new Command();
 program
   .name('refinore')
   .description('CLI tool for ORE mining on Solana via refinORE')
-  .version('1.3.0');
+  .version('1.4.0');
 
 // Init command
 program
@@ -246,7 +246,39 @@ strategy
 // Swap command group
 const swap = program
   .command('swap')
-  .description('Manage DCA and limit swap orders');
+  .description('Quote, execute, and automate token swaps');
+
+swap
+  .command('quote')
+  .description('Get a direct swap quote between supported tokens')
+  .requiredOption('--from <token>', 'Input token (SOL, USDC, ORE, stORE, SKR)')
+  .requiredOption('--to <token>', 'Output token (SOL, USDC, ORE, stORE, SKR)')
+  .requiredOption('--amount <amount>', 'Amount of the input token to swap')
+  .option('--slippage <bps>', 'Max slippage in basis points', '300')
+  .action(async (options) => {
+    try {
+      await swapQuoteCommand(options);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
+
+swap
+  .command('execute')
+  .description('Execute a direct swap between supported tokens')
+  .requiredOption('--from <token>', 'Input token (SOL, USDC, ORE, stORE, SKR)')
+  .requiredOption('--to <token>', 'Output token (SOL, USDC, ORE, stORE, SKR)')
+  .requiredOption('--amount <amount>', 'Amount of the input token to swap')
+  .option('--slippage <bps>', 'Max slippage in basis points', '300')
+  .action(async (options) => {
+    try {
+      await swapExecuteCommand(options);
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
+      process.exit(1);
+    }
+  });
 
 swap
   .command('list')
